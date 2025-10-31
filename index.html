@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>User Outlooks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: Arial, sans-serif;
+    margin: 0;
+  }
+
+  /* NAV BAR */
+  nav {
+    background: #161b22;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+  }
+
+  nav .logo {
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  nav a {
+    color: #e6edf3;
+    margin-left: 20px;
+    text-decoration: none;
+    font-size: 15px;
+  }
+
+  nav a:hover {
+    color: #58a6ff;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 30px;
+  }
+
+  .card {
+    background: #161b22;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    margin-top: 30px;
+  }
+
+  input, textarea {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    border-radius: 6px;
+  }
+
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    margin-bottom: 16px;
+  }
+
+  button {
+    background: #238636;
+    border: none;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+
+  button:hover {
+    background: #2ea043;
+  }
+
+  .note {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 10px;
+  }
+</style>
+
+</head>
+<body>
+
+<!-- NAV BAR -->
+<nav>
+  <div class="logo">User Outlooks</div>
+  <div>
+    <a href="https://euwpc.github.io/ewpc.github.io-home/">Home</a>
+    <a href="archive.html">Outlook Archive</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <h1>Submit Your Weather Outlook</h1>
+  <p>Share your meteorological analysis. All submissions require approval before appearing in the archive.</p>
+
+  <div class="card">
+    <h2>Submit Outlook</h2>
+
+    <!-- FORM CREATES A GITHUB ISSUE -->
+    <form method="POST" action="https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new" target="_blank">
+
+      <label>Outlook Title:</label>
+      <input type="text" name="title" placeholder="Example: Baltic Low Pressure Event Outlook" required>
+
+      <label>Discussion / Forecast Analysis:</label>
+      <textarea name="body" rows="6" placeholder="Write your analysis here..." required></textarea>
+
+      <label>Outlook Image Link:</label>
+      <input type="text" name="body" placeholder="Upload to https://imgbb.com or https://imgur.com and paste link here" required>
+
+      <button type="submit">Submit Outlook</button>
+    </form>
+
+    <p class="note">*Only the site owner (you) can approve or decline outlooks.</p>
+  </div>
+
+</div>
+
+</body>
+</html>
