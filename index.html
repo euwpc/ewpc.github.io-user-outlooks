@@ -52,6 +52,10 @@
     margin-top: 30px;
   }
 
+  input, textarea, button {
+    font-family: Arial, sans-serif;
+  }
+
   input, textarea {
     background: #0d1117;
     border: 1px solid #30363d;
@@ -105,56 +109,44 @@
 </nav>
 
 <div class="container">
-
   <h1>Submit Your Weather Outlook</h1>
-  <p>Share your meteorological analysis. All submissions require approval before appearing in the archive.</p>
+  <p>All submissions require admin approval before appearing in the archive.</p>
 
   <div class="card">
     <h2>Submit Outlook</h2>
 
-    <form id="outlookForm">
+    <form id="submitForm">
       <label>Outlook Title:</label>
-      <input type="text" id="title" placeholder="Example: Baltic Low Pressure Event Outlook" required>
+      <input type="text" id="title" required>
 
       <label>Discussion / Forecast Analysis:</label>
-      <textarea id="discussion" rows="6" placeholder="Write your analysis here..." required></textarea>
+      <textarea id="discussion" rows="6" required></textarea>
 
-      <label>Attach Outlook Image:</label>
-      <input type="file" id="imageInput" accept="image/*" required>
+      <label>Upload Outlook Image:</label>
+      <input type="file" id="imageFile" accept="image/*">
 
       <button type="submit">Submit Outlook</button>
+
+      <p class="note">You will be redirected to GitHub to finalize submission & attach the image.</p>
     </form>
-
-    <p class="note">*Only you (the site owner) can approve or decline outlooks.</p>
   </div>
-
 </div>
 
 <script>
-document.getElementById("outlookForm").addEventListener("submit", function(e) {
+document.getElementById("submitForm").addEventListener("submit", function(e) {
   e.preventDefault();
 
-  const title = document.getElementById("title").value;
-  const discussion = document.getElementById("discussion").value;
-  const file = document.getElementById("imageInput").files[0];
+  const title = encodeURIComponent(document.getElementById("title").value);
+  const discussion = encodeURIComponent(document.getElementById("discussion").value);
 
-  const reader = new FileReader();
-  reader.onloadend = function() {
-    const base64Image = reader.result;
+  const body =
+    encodeURIComponent("### Outlook Discussion\n" +
+    discussion +
+    "\n\n### Image\n**Please attach the image file below before submitting.**");
 
-    const body =
-`**Discussion:**  
-${discussion}
+  const url = `https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new?title=${title}&body=${body}`;
 
-**Outlook Image:**  
-![Outlook Image](${base64Image})
-`;
-
-    const issueUrl = `https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=pending`;
-    window.open(issueUrl, "_blank");
-  };
-
-  reader.readAsDataURL(file);
+  window.open(url, "_blank");
 });
 </script>
 
