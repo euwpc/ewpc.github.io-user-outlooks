@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pending Outlooks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body { background: #0d1117; color: #e6edf3; font-family: Arial; margin: 0; }
+  nav { background: #161b22; padding: 14px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #30363d; }
+  nav a { color: #e6edf3; margin-left: 20px; text-decoration: none; }
+  nav a:hover { color: #58a6ff; }
+  .container { max-width: 900px; margin: auto; padding: 30px; }
+  .card { background: #161b22; padding: 20px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 25px; }
+  button { background: #238636; border: none; padding: 8px 14px; color: white; border-radius: 6px; cursor: pointer; margin-right: 10px; }
+  button.decline { background: #a62626; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">User Outlooks</div>
+  <div>
+    <a href="index.html">Submit</a>
+    <a href="archive.html">Outlook Archive</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1>Pending Approval</h1>
+  <div id="pendingList">Loading...</div>
+</div>
+
+<script>
+async function loadPending() {
+  const response = await fetch("https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/issues?state=open");
+  const issues = await response.json();
+  const container = document.getElementById("pendingList");
+  container.innerHTML = "";
+
+  issues.forEach(issue => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<h2>${issue.title}</h2><p>${issue.user.login}</p>
+    <a href="${issue.html_url}" target="_blank"><button>Review on GitHub</button></a>`;
+    container.appendChild(card);
+  });
+}
+loadPending();
+</script>
+
+</body>
+</html>
