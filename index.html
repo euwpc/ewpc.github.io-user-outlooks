@@ -13,7 +13,6 @@
     margin: 0;
   }
 
-  /* NAV BAR */
   nav {
     background: #161b22;
     padding: 14px 20px;
@@ -67,6 +66,11 @@
     margin-bottom: 16px;
   }
 
+  input[type="file"] {
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
+
   button {
     background: #238636;
     border: none;
@@ -91,7 +95,6 @@
 </head>
 <body>
 
-<!-- NAV BAR -->
 <nav>
   <div class="logo">User Outlooks</div>
   <div>
@@ -109,25 +112,51 @@
   <div class="card">
     <h2>Submit Outlook</h2>
 
-    <!-- FORM CREATES A GITHUB ISSUE -->
-    <form method="POST" action="https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new" target="_blank">
-
+    <form id="outlookForm">
       <label>Outlook Title:</label>
-      <input type="text" name="title" placeholder="Example: Baltic Low Pressure Event Outlook" required>
+      <input type="text" id="title" placeholder="Example: Baltic Low Pressure Event Outlook" required>
 
       <label>Discussion / Forecast Analysis:</label>
-      <textarea name="body" rows="6" placeholder="Write your analysis here..." required></textarea>
+      <textarea id="discussion" rows="6" placeholder="Write your analysis here..." required></textarea>
 
-      <label>Outlook Image Link:</label>
-      <input type="text" name="body" placeholder="Upload to https://imgbb.com or https://imgur.com and paste link here" required>
+      <label>Attach Outlook Image:</label>
+      <input type="file" id="imageInput" accept="image/*" required>
 
       <button type="submit">Submit Outlook</button>
     </form>
 
-    <p class="note">*Only the site owner (you) can approve or decline outlooks.</p>
+    <p class="note">*Only you (the site owner) can approve or decline outlooks.</p>
   </div>
 
 </div>
+
+<script>
+document.getElementById("outlookForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const title = document.getElementById("title").value;
+  const discussion = document.getElementById("discussion").value;
+  const file = document.getElementById("imageInput").files[0];
+
+  const reader = new FileReader();
+  reader.onloadend = function() {
+    const base64Image = reader.result;
+
+    const body =
+`**Discussion:**  
+${discussion}
+
+**Outlook Image:**  
+![Outlook Image](${base64Image})
+`;
+
+    const issueUrl = `https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=pending`;
+    window.open(issueUrl, "_blank");
+  };
+
+  reader.readAsDataURL(file);
+});
+</script>
 
 </body>
 </html>
