@@ -4,53 +4,33 @@
 <meta charset="UTF-8">
 <title>Outlook Details</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-  body { background: #0d1117; color: #e6edf3; font-family: Arial, sans-serif; margin: 0; }
-  nav { background: #161b22; padding: 14px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #30363d; }
-  nav a { color: #e6edf3; text-decoration: none; margin-left: 20px; }
-  nav a:hover { color: #58a6ff; }
-  .container { max-width: 900px; margin: auto; padding: 30px; }
-  .card { background: #161b22; padding: 25px; border-radius: 10px; border: 1px solid #30363d; }
-  img { max-width: 100%; border-radius: 10px; margin-top: 20px; }
+body { background: #0d1117; color: #e6edf3; font-family: Arial, sans-serif; margin: 0; }
+.container { max-width: 900px; margin: auto; padding: 30px; }
+img { max-width: 100%; border-radius: 6px; margin: 20px 0; }
+a { color: #58a6ff; }
 </style>
 </head>
+
 <body>
-
-<nav>
-  <div class="logo">User Outlooks</div>
-  <div>
-    <a href="index.html">Submit</a>
-    <a href="archive.html">Outlook Archive</a>
-  </div>
-</nav>
-
-<div class="container">
-  <div id="outlookContent" class="card">Loading outlook...</div>
-</div>
+<div class="container" id="content">Loading...</div>
 
 <script>
 async function loadOutlook() {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
+  const id = new URLSearchParams(window.location.search).get("id");
+  const res = await fetch(`https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/issues/${id}`);
+  const issue = await res.json();
 
-  if (!id) return;
+  const imgMatch = issue.body.match(/https:\/\/.*\.(png|jpg|jpeg|gif)/i);
+  const imgTag = imgMatch ? `<img src="${imgMatch[0]}">` : "";
 
-  const response = await fetch(`https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/issues/${id}`);
-  const issue = await response.json();
-
-  const imgMatch = issue.body.match(/!\[.*?\]\((.*?)\)/);
-  const imgTag = imgMatch ? `<img src="${imgMatch[1]}" alt="Outlook Image">` : "";
-
-  const content = document.getElementById("outlookContent");
-  content.innerHTML = `
+  document.getElementById("content").innerHTML = `
     <h1>${issue.title}</h1>
-    <p>Submitted by <strong>${issue.user.login}</strong> • ${new Date(issue.created_at).toLocaleDateString()}</p>
-    <p>${issue.body.replace(/!\[.*?\]\((.*?)\)/, '')}</p>
     ${imgTag}
+    <pre>${issue.body.replace(/###/g,"")}</pre>
+    <a href="archive.html">← Back to Archive</a>
   `;
 }
-
 loadOutlook();
 </script>
 
