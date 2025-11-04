@@ -2,51 +2,91 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Pending Outlooks</title>
+<title>Pending Outlook Approvals</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-  body { background: #0d1117; color: #e6edf3; font-family: Arial; margin: 0; }
-  nav { background: #161b22; padding: 14px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #30363d; }
-  nav a { color: #e6edf3; margin-left: 20px; text-decoration: none; }
+  body { background: #0d1117; color: #e6edf3; font-family: Arial, sans-serif; margin: 0; }
+  nav { background: #161b22; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
+  nav .logo { font-size: 20px; font-weight: bold; }
+  nav a { color: #e6edf3; margin-left: 20px; text-decoration: none; font-size: 15px; }
   nav a:hover { color: #58a6ff; }
   .container { max-width: 900px; margin: auto; padding: 30px; }
-  .card { background: #161b22; padding: 20px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 25px; }
-  button { background: #238636; border: none; padding: 8px 14px; color: white; border-radius: 6px; cursor: pointer; margin-right: 10px; }
-  button.decline { background: #a62626; }
+  .card { background: #161b22; border: 1px solid #30363d; padding: 20px; border-radius: 10px; margin-bottom: 25px; }
+  button { padding: 8px 14px; border-radius: 6px; cursor: pointer; border: none; margin-right: 10px; }
+  .approve { background: #238636; color: white; }
+  .approve:hover { background: #2ea043; }
+  .decline { background: #da3633; color: white; }
+  .decline:hover { background: #f85149; }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="logo">User Outlooks</div>
+  <div class="logo">Admin Panel</div>
   <div>
     <a href="index.html">Submit</a>
     <a href="archive.html">Outlook Archive</a>
+    <a href="pending.html">Pending</a>
   </div>
 </nav>
 
 <div class="container">
-  <h1>Pending Approval</h1>
+  <h1>Pending Outlook Submissions</h1>
+  <p>Only visible to the repository owner (<b>euwpc</b>).</p>
   <div id="pendingList">Loading...</div>
 </div>
 
 <script>
-async function loadPending() {
-  const response = await fetch("https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/issues?state=open");
-  const issues = await response.json();
-  const container = document.getElementById("pendingList");
-  container.innerHTML = "";
+const repoOwner = "euwpc";
+const repoName = "ewpc.github.io-user-outlooks";
 
-  issues.forEach(issue => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `<h2>${issue.title}</h2><p>${issue.user.login}</p>
-    <a href="${issue.html_url}" target="_blank"><button>Review on GitHub</button></a>`;
-    container.appendChild(card);
+let loggedInUser = null;
+
+fetch("https://api.github.com/user", { credentials: "include" })
+  .then(res => res.json())
+  .then(data => {
+    loggedInUser = data.login || null;
+  })
+  .catch(() => {});
+
+fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open`)
+  .then(res => res.json())
+  .then(issues => {
+    const list = document.getElementById("pendingList");
+    list.innerHTML = "";
+
+    issues.forEach(issue => {
+      if (!issue.labels.some(label => label.name === "approved")) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${issue.title}</h3>
+          <p>${issue.body.replace(/###/g, "").slice(0, 200)}...</p>
+          <a href="${issue.html_url}" target="_blank">Open in GitHub</a><br><br>
+
+          <button class="approve hidden" onclick="approve(${issue.number})">Approve</button>
+          <button class="decline hidden" onclick="decline(${issue.number})">Decline</button>
+        `;
+        list.appendChild(card);
+
+        // Buttons only show if logged in user is YOU
+        const checkButtons = setInterval(() => {
+          if (loggedInUser === repoOwner) {
+            card.querySelectorAll("button").forEach(b => b.classList.remove("hidden"));
+          }
+        }, 500);
+      }
+    });
   });
+
+function approve(issue) {
+  window.open(`https://github.com/${repoOwner}/${repoName}/issues/${issue}?labels=approved`, "_blank");
 }
-loadPending();
+
+function decline(issue) {
+  window.open(`https://github.com/${repoOwner}/${repoName}/issues/${issue}`, "_blank");
+}
 </script>
 
 </body>
