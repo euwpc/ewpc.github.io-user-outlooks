@@ -52,7 +52,8 @@ async function loadOutlooks() {
   let issues = await res.json();
 
   const region = document.getElementById("regionFilter").value;
-  if (region) issues = issues.filter(i => i.body.includes("Region: " + region));
+  if (region) issues = issues.filter(i => i.body.toLowerCase().includes(region.toLowerCase()));
+
 
   const list = document.getElementById("outlookList");
   list.innerHTML = "";
