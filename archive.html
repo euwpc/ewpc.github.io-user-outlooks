@@ -46,7 +46,8 @@ async function loadOutlooks() {
     const imgTag = imgMatch ? `<img src="${imgMatch[1]}" alt="Outlook image">` : "";
 
     card.innerHTML = `
-      <h2>${issue.title}</h2>
+  <h2><a href="outlook.html?id=${issue.number}">${issue.title}</a></h2>
+`;
       <p>Submitted by <strong>${issue.user.login}</strong> • ${new Date(issue.created_at).toLocaleDateString()}</p>
       <p>${issue.body.replace(/!\[.*?\]\((.*?)\)/, '')}</p>
       ${imgTag}
