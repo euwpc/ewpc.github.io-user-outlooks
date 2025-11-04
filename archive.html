@@ -5,88 +5,73 @@
 <title>Outlook Archive</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body {
-    background: #0d1117;
-    color: #e6edf3;
-    font-family: Arial, sans-serif;
-    margin: 0;
-  }
-  nav {
-    background: #161b22;
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #30363d;
-  }
-  nav .logo { font-size: 20px; font-weight: bold; }
-  nav a {
-    color: #e6edf3; margin-left: 20px; text-decoration: none; font-size: 15px;
-  }
-  nav a:hover { color: #58a6ff; }
-  .container { max-width: 900px; margin: auto; padding: 30px; }
-  .outlook-card {
-    background: #161b22;
-    border: 1px solid #30363d;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 25px;
-  }
-  img {
-    max-width: 100%;
-    border-radius: 6px;
-    margin-top: 10px;
-  }
+body { background: #0d1117; color: #e6edf3; font-family: Arial, sans-serif; margin: 0; }
+nav { background: #161b22; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
+nav a { color: #e6edf3; margin-left: 20px; text-decoration: none; }
+nav a:hover { color: #58a6ff; }
+.container { max-width: 900px; margin: auto; padding: 30px; }
+.card { background: #161b22; padding: 25px; border-radius: 10px; border: 1px solid #30363d; margin-top: 30px; }
+img { max-width: 100%; border-radius: 6px; margin-top: 10px; }
+.filter-container { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+select { background: #0d1117; border: 1px solid #30363d; color: #e6edf3; padding: 6px; border-radius: 6px; }
 </style>
 </head>
-<body>
 
+<body>
 <nav>
   <div class="logo">User Outlooks</div>
   <div>
     <a href="index.html">Submit</a>
     <a href="archive.html">Outlook Archive</a>
-    <a href="about.html">About</a>
     <a href="pending.html">Pending</a>
+    <a href="about.html">About</a>
   </div>
 </nav>
 
 <div class="container">
   <h1>Approved Weather Outlooks</h1>
-  <p>Outlooks shown here are approved by the administrator.</p>
+
+  <div class="filter-container">
+    <select id="regionFilter">
+      <option value="">Filter by Region</option>
+      <option>Baltic Region</option>
+      <option>Scandinavia</option>
+      <option>Central Europe</option>
+      <option>Western Europe</option>
+      <option>Eastern Europe</option>
+      <option>Southern Europe</option>
+    </select>
+  </div>
 
   <div id="outlookList">Loading...</div>
 </div>
 
 <script>
-const repoOwner = "euwpc";
-const repoName = "ewpc.github.io-user-outlooks";
+async function loadOutlooks() {
+  const res = await fetch("https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/issues?state=closed");
+  let issues = await res.json();
 
-fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/issues?labels=approved&state=open`)
-  .then(res => res.json())
-  .then(data => {
-    const list = document.getElementById("outlookList");
-    list.innerHTML = "";
+  const region = document.getElementById("regionFilter").value;
+  if (region) issues = issues.filter(i => i.body.includes("Region: " + region));
 
-    data.forEach(issue => {
-      const card = document.createElement("div");
-      card.className = "outlook-card";
+  const list = document.getElementById("outlookList");
+  list.innerHTML = "";
 
-      const imgMatch = issue.body.match(/!\[.*?\]\((.*?)\)/);
+  issues.reverse().forEach(issue => {
+    const imgMatch = issue.body.match(/https:\/\/.*\.(png|jpg|jpeg|gif)/i);
+    const imgTag = imgMatch ? `<img src="${imgMatch[0]}">` : "";
 
-      card.innerHTML = `
+    list.innerHTML += `
+      <div class="card">
         <h2>${issue.title}</h2>
-        <p>${issue.body.replace(/!\[.*?\]\(.*?\)/, "").replace(/###/g, "").trim()}</p>
-        ${imgMatch ? `<img src="${imgMatch[1]}" alt="Outlook Image">` : ""}
-        <p><a href="${issue.html_url}" target="_blank">View Discussion</a></p>
-      `;
-
-      list.appendChild(card);
-    });
-  })
-  .catch(() => {
-    document.getElementById("outlookList").innerHTML = "Failed to load outlooks.";
+        ${imgTag}
+        <a href="outlook.html?id=${issue.number}">View Discussion</a>
+      </div>`;
   });
+}
+
+document.getElementById("regionFilter").addEventListener("change", loadOutlooks);
+loadOutlooks();
 </script>
 
 </body>
