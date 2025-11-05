@@ -147,21 +147,24 @@
 </div>
 
 <script>
-document.getElementById("submitForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+function submitOutlook() {
+  const region = document.getElementById('regionSelect').value;
+  const title = document.getElementById('titleInput').value;
+  const discussion = document.getElementById('discussionInput').value;
 
-  const title = encodeURIComponent(document.getElementById("title").value);
-  const discussion = encodeURIComponent(document.getElementById("discussion").value);
+  if (!region || !title || !discussion) {
+    alert("Please complete all fields.");
+    return;
+  }
 
-  const body =
-    encodeURIComponent("### Outlook Discussion\n" +
-    discussion +
-    "\n\n### Image\n**Please attach the image file below before submitting.**");
+  const fullBody = `Region: ${region}\n\n${discussion}\n\n(Please upload the image file below.)`;
 
-  const url = `https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new?title=${title}&body=${body}`;
+  const url = "https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new" +
+    "?title=" + encodeURIComponent(title) +
+    "&body=" + encodeURIComponent(fullBody);
 
   window.open(url, "_blank");
-});
+}
 </script>
 
 </body>
