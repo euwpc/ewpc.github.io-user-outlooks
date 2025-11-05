@@ -117,16 +117,29 @@
     <h2>Submit Outlook</h2>
 
     <form id="submitForm">
-      <label>Outlook Title:</label>
-      <input type="text" id="title" required>
+      <label>Region:</label>
+<select id="regionSelect" required>
+  <option value="">-- Select Region --</option>
+  <option value="Baltic Region">Baltic Region</option>
+  <option value="Northern Europe">Northern Europe</option>
+  <option value="Central Europe">Central Europe</option>
+  <option value="Western Europe">Western Europe</option>
+  <option value="Southern Europe">Southern Europe</option>
+  <option value="Eastern Europe">Eastern Europe</option>
+  <option value="Scandinavia">Scandinavia</option>
+  <option value="British Isles">British Isles</option>
+</select>
 
-      <label>Discussion / Forecast Analysis:</label>
-      <textarea id="discussion" rows="6" required></textarea>
+<label>Outlook Title:</label>
+<input type="text" id="titleInput" placeholder="Example: Baltic Low Pressure Event Outlook" required>
 
-      <label>Upload Outlook Image:</label>
-      <input type="file" id="imageFile" accept="image/*">
+<label>Discussion / Forecast Analysis:</label>
+<textarea id="discussionInput" rows="6" placeholder="Write your analysis here..." required></textarea>
 
-      <button type="submit">Submit Outlook</button>
+<label>Upload Image:</label>
+<input type="file" id="imageUpload" accept="image/*" required>
+
+<button type="button" onclick="submitOutlook()">Submit Outlook</button>
 
       <p class="note">You will be redirected to GitHub to finalize submission & attach the image.</p>
     </form>
