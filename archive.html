@@ -2,77 +2,129 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Outlook Archive</title>
+<title>Approved Outlooks</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body { background: #0d1117; color: #e6edf3; font-family: Arial, sans-serif; margin: 0; }
-nav { background: #161b22; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
-nav a { color: #e6edf3; margin-left: 20px; text-decoration: none; }
-nav a:hover { color: #58a6ff; }
-.container { max-width: 900px; margin: auto; padding: 30px; }
-.card { background: #161b22; padding: 25px; border-radius: 10px; border: 1px solid #30363d; margin-top: 30px; }
-img { max-width: 100%; border-radius: 6px; margin-top: 10px; }
-.filter-container { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
-select { background: #0d1117; border: 1px solid #30363d; color: #e6edf3; padding: 6px; border-radius: 6px; }
-</style>
-</head>
 
+<style>
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: Arial, sans-serif;
+    margin: 0;
+  }
+
+  nav {
+    background: #161b22;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+  }
+
+  nav a {
+    color: #e6edf3;
+    margin-left: 20px;
+    text-decoration: none;
+  }
+  nav a:hover { color: #58a6ff; }
+
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 30px;
+  }
+
+  .outlook-card {
+    background: #161b22;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    padding: 20px;
+    margin-top: 25px;
+  }
+
+  .thumb {
+    width: 200px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-top: 10px;
+    border: 1px solid #30363d;
+  }
+
+  /* IMAGE POPUP MODAL */
+  #imgModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    padding-top: 80px;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+  }
+  #imgModal img {
+    display: block;
+    margin: auto;
+    max-width: 90%;
+    max-height: 90%;
+  }
+  #imgModal:target { display: block; }
+</style>
+
+</head>
 <body>
+
 <nav>
-  <div class="logo">User Outlooks</div>
+  <div class="logo">Approved Outlooks</div>
   <div>
     <a href="index.html">Submit</a>
-    <a href="archive.html">Outlook Archive</a>
     <a href="pending.html">Pending</a>
     <a href="about.html">About</a>
   </div>
 </nav>
 
 <div class="container">
-  <h1>Approved Weather Outlooks</h1>
-
-  <div class="filter-container">
-    <select id="regionFilter">
-      <option value="">Filter by Region</option>
-      <option>Baltic Region</option>
-      <option>Scandinavia</option>
-      <option>Central Europe</option>
-      <option>Western Europe</option>
-      <option>Eastern Europe</option>
-      <option>Southern Europe</option>
-    </select>
-  </div>
+  <h1>Approved Outlooks</h1>
+  <p>Newest outlooks appear first.</p>
 
   <div id="outlookList">Loading...</div>
 </div>
 
+<!-- IMAGE POPUP -->
+<div id="imgModal"><img id="modalImg"></div>
+
 <script>
-async function loadOutlooks() {
-  const res = await fetch("https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/issues?state=closed");
-  let issues = await res.json();
+// Fetch approved outlooks from GitHub
+fetch("https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/issues?labels=approved&state=open")
+  .then(res => res.json())
+  .then(data => {
+    const list = document.getElementById("outlookList");
+    list.innerHTML = "";
 
-  const region = document.getElementById("regionFilter").value;
-  if (region) issues = issues.filter(i => i.body.toLowerCase().includes(region.toLowerCase()));
+    data.forEach(issue => {
+      const body = issue.body || "";
+      const regionMatch = body.match(/Region:\s*(.*)/i);
+      const region = regionMatch ? regionMatch[1] : "Unknown Region";
 
+      const imgMatch = body.match(/!\[.*\]\((.*?)\)/);
+      const imgURL = imgMatch ? imgMatch[1] : "";
 
-  const list = document.getElementById("outlookList");
-  list.innerHTML = "";
-
-  issues.reverse().forEach(issue => {
-    const imgMatch = issue.body.match(/https:\/\/.*\.(png|jpg|jpeg|gif)/i);
-    const imgTag = imgMatch ? `<img src="${imgMatch[0]}">` : "";
-
-    list.innerHTML += `
-      <div class="card">
+      const card = document.createElement("div");
+      card.className = "outlook-card";
+      card.innerHTML = `
         <h2>${issue.title}</h2>
-        ${imgTag}
-        <a href="outlook.html?id=${issue.number}">View Discussion</a>
-      </div>`;
+        <p><b>Region:</b> ${region}</p>
+        <p>${body.replace(/!\[.*\]\(.*?\)/, "").replace("### Outlook Discussion", "").trim()}</p>
+        ${imgURL ? `<img src="${imgURL}" class="thumb" onclick="showImage('${imgURL}')">` : ""}
+      `;
+      list.prepend(card);
+    });
   });
-}
 
-document.getElementById("regionFilter").addEventListener("change", loadOutlooks);
-loadOutlooks();
+// IMAGE POPUP FUNCTION
+function showImage(src) {
+  document.getElementById("modalImg").src = src;
+  location.hash = "imgModal";
+}
 </script>
 
 </body>
