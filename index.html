@@ -148,22 +148,32 @@
 
 <script>
 function submitOutlook() {
-  const region = document.getElementById('regionSelect').value;
-  const title = document.getElementById('titleInput').value;
-  const discussion = document.getElementById('discussionInput').value;
+  const region = document.getElementById("regionSelect").value;
+  const title = document.getElementById("titleInput").value.trim();
+  const discussion = document.getElementById("discussionInput").value.trim();
 
   if (!region || !title || !discussion) {
-    alert("Please complete all fields.");
+    alert("Please fill out all fields before submitting.");
     return;
   }
 
-  const fullBody = `Region: ${region}\n\n${discussion}\n\n(Please upload the image file below.)`;
+  const body = `
+### Region:
+${region}
 
-  const url = "https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new" +
-    "?title=" + encodeURIComponent(title) +
-    "&body=" + encodeURIComponent(fullBody);
+### Outlook Discussion:
+${discussion}
 
-  window.open(url, "_blank");
+### Image:
+**Attach your image file below before submitting.**
+`;
+
+  const issueURL =
+    "https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new" +
+    `?title=${encodeURIComponent(title)}` +
+    `&body=${encodeURIComponent(body)}`;
+
+  window.open(issueURL, "_blank");
 }
 </script>
 
