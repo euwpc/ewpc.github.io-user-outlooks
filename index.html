@@ -2,167 +2,79 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Community Outlooks</title>
+<title>User Outlooks</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-  body {
-    background: #0d1117;
-    color: #e6edf3;
-    font-family: Arial, sans-serif;
-    margin: 0;
-  }
-
-  nav {
-    background: #161b22;
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #30363d;
-  }
-
-  nav .logo {
-    font-size: 20px;
-    font-weight: bold;
-  }
-
-  nav a {
-    color: #e6edf3;
-    margin-left: 20px;
-    text-decoration: none;
-    font-size: 15px;
-  }
-
-  nav a:hover {
-    color: #58a6ff;
-  }
-
-  .container {
-    max-width: 900px;
-    margin: auto;
-    padding: 30px;
-  }
-
-  .card {
-    background: #161b22;
-    padding: 25px;
-    border-radius: 10px;
-    border: 1px solid #30363d;
-    margin-top: 30px;
-  }
-
-  input, textarea, button {
-    font-family: Arial, sans-serif;
-  }
-
-  input, textarea {
-    background: #0d1117;
-    border: 1px solid #30363d;
-    color: #e6edf3;
-    border-radius: 6px;
-  }
-
-  input[type="text"], textarea {
-    width: 100%;
-    padding: 10px;
-    margin-top: 6px;
-    margin-bottom: 16px;
-  }
-
-  input[type="file"] {
-    margin-top: 8px;
-    margin-bottom: 16px;
-  }
-
-  button {
-    background: #238636;
-    border: none;
-    color: white;
-    padding: 10px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
-  }
-
-  button:hover {
-    background: #2ea043;
-  }
-
-  .note {
-    font-size: 13px;
-    opacity: 0.7;
-    margin-top: 10px;
-  }
+  body { background:#0d1117; color:#e6edf3; font-family:Arial; margin:0; }
+  nav { background:#161b22; padding:14px 20px; display:flex; justify-content:space-between; border-bottom:1px solid #30363d; }
+  nav a { color:#e6edf3; margin-left:20px; text-decoration:none; }
+  nav a:hover { color:#58a6ff; }
+  .container { max-width:900px; margin:auto; padding:30px; }
+  .card { background:#161b22; padding:25px; border-radius:10px; border:1px solid #30363d; margin-top:20px; }
+  input, textarea, select { width:100%; background:#0d1117; border:1px solid #30363d; color:#e6edf3; padding:10px; border-radius:6px; margin-bottom:16px; }
+  button { background:#238636; padding:10px 16px; border:none; border-radius:6px; cursor:pointer; }
+  button:hover { background:#2ea043; }
+  .note { font-size:13px; opacity:.7; }
 </style>
-
 </head>
 <body>
 
 <nav>
-  <div class="logo">Community Outlooks</div>
+  <div class="logo">User Outlooks</div>
   <div>
-    <a href="https://euwpc.github.io/ewpc.github.io-home/">Home</a>
-    <a href="archive.html">Outlook Archive</a>
-    <a href="about.html">About</a>
+    <a href="index.html">Submit</a>
+    <a href="archive.html">Approved Outlooks</a>
     <a href="pending.html">Pending</a>
+    <a href="about.html">About</a>
   </div>
 </nav>
 
 <div class="container">
   <h1>Submit Your Weather Outlook</h1>
-  <p>All submissions require admin approval before appearing in the archive.</p>
+  <p>All outlooks will be reviewed before approval. These are **community outlooks** and **not official forecasts**.</p>
 
   <div class="card">
     <h2>Submit Outlook</h2>
 
     <form id="submitForm">
+      <label>Your Username:</label>
+      <input type="text" id="usernameInput" required>
+
       <label>Region:</label>
-<select id="regionSelect" required>
-  <option value="">-- Select Region --</option>
-  <option value="Baltic Region">Baltic Region</option>
-  <option value="Northern Europe">Northern Europe</option>
-  <option value="Central Europe">Central Europe</option>
-  <option value="Western Europe">Western Europe</option>
-  <option value="Southern Europe">Southern Europe</option>
-  <option value="Eastern Europe">Eastern Europe</option>
-  <option value="Scandinavia">Scandinavia</option>
-  <option value="British Isles">British Isles</option>
-</select>
+      <select id="regionSelect" required>
+        <option value="">-- Select Region --</option>
+        <option>Baltic Region</option><option>Northern Europe</option>
+        <option>Central Europe</option><option>Western Europe</option>
+        <option>Southern Europe</option><option>Eastern Europe</option>
+        <option>Scandinavia</option><option>British Isles</option>
+      </select>
 
-<label>Outlook Title:</label>
-<input type="text" id="titleInput" placeholder="Example: Baltic Low Pressure Event Outlook" required>
+      <label>Outlook Title:</label>
+      <input type="text" id="titleInput" required>
 
-<label>Discussion / Forecast Analysis:</label>
-<textarea id="discussionInput" rows="6" placeholder="Write your analysis here..." required></textarea>
+      <label>Discussion / Forecast Analysis:</label>
+      <textarea id="discussionInput" rows="6" required></textarea>
 
-<label>Upload Image:</label>
-<input type="file" id="imageUpload" accept="image/*" required>
+      <label>Upload Image:</label>
+      <input type="file" id="imageUpload" accept="image/*" required>
 
-<button type="button" onclick="submitOutlook()">Submit Outlook</button>
-
-      <p class="note">You will be redirected to GitHub to finalize submission & attach the image.</p>
+      <button type="button" onclick="submitOutlook()">Submit Outlook</button>
+      <p class="note">You will be redirected to GitHub to attach your image.</p>
     </form>
   </div>
 </div>
 
 <script>
 function submitOutlook() {
+  const user = document.getElementById('usernameInput').value.trim();
   const region = document.getElementById('regionSelect').value;
-  const title = document.getElementById('titleInput').value;
-  const discussion = document.getElementById('discussionInput').value;
+  const title = document.getElementById('titleInput').value.trim();
+  const discussion = document.getElementById('discussionInput').value.trim();
 
-  if (!region || !title || !discussion) {
-    alert("Please complete all fields.");
-    return;
-  }
+  const body = `**User:** ${user}\n**Region:** ${region}\n\n${discussion}\n\n**Attach image below before submitting.**`;
 
-  const fullBody = `Region: ${region}\n\n${discussion}\n\n(Please upload the image file below.)`;
-
-  const url = "https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new" +
-    "?title=" + encodeURIComponent(title) +
-    "&body=" + encodeURIComponent(fullBody);
-
+  const url = `https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
   window.open(url, "_blank");
 }
 </script>

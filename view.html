@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Full Outlook View</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: Arial, sans-serif;
+    margin: 0;
+  }
+
+  nav {
+    background: #161b22;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+  }
+
+  nav a {
+    color: #e6edf3;
+    margin-left: 20px;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: #58a6ff;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 30px;
+  }
+
+  .outlook-image {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    margin-bottom: 20px;
+  }
+
+  .meta {
+    font-size: 14px;
+    color: #8b949e;
+    margin-bottom: 12px;
+  }
+
+  .discussion-box {
+    background: #161b22;
+    border: 1px solid #30363d;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    white-space: pre-line;
+  }
+
+  .back-btn {
+    background: #238636;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    margin-top: 20px;
+    display: inline-block;
+  }
+
+  .back-btn:hover {
+    background: #2ea043;
+  }
+
+  .note {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 25px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">User Outlooks</div>
+  <div>
+    <a href="index.html">Submit</a>
+    <a href="archive.html">Approved Outlooks</a>
+    <a href="pending.html">Pending</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 id="title">Loading...</h1>
+  <p class="meta" id="meta"></p>
+
+  <img id="image" class="outlook-image" src="" alt="Outlook Image">
+
+  <div class="discussion-box" id="discussion"></div>
+
+  <button class="back-btn" onclick="history.back()">← Back to Archive</button>
+
+  <p class="note">These are community-submitted outlooks and do not represent official forecasts.</p>
+</div>
+
+<script>
+  const data = localStorage.getItem('selectedOutlook');
+  if (!data) {
+    document.body.innerHTML = "<p style='padding:20px'>Error: No outlook selected.</p>";
+  } else {
+    const o = JSON.parse(decodeURIComponent(data));
+    document.getElementById("title").innerText = o.title;
+    document.getElementById("image").src = o.image;
+    document.getElementById("meta").innerText = `${o.region} • ${o.date} • by ${o.user}`;
+    document.getElementById("discussion").innerText = o.discussion;
+  }
+</script>
+
+</body>
+</html>

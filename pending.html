@@ -1,93 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Pending Outlook Approvals</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>User Outlooks — Pending</title>
 <style>
-  body { background: #0d1117; color: #e6edf3; font-family: Arial, sans-serif; margin: 0; }
-  nav { background: #161b22; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
-  nav .logo { font-size: 20px; font-weight: bold; }
-  nav a { color: #e6edf3; margin-left: 20px; text-decoration: none; font-size: 15px; }
-  nav a:hover { color: #58a6ff; }
-  .container { max-width: 900px; margin: auto; padding: 30px; }
-  .card { background: #161b22; border: 1px solid #30363d; padding: 20px; border-radius: 10px; margin-bottom: 25px; }
-  button { padding: 8px 14px; border-radius: 6px; cursor: pointer; border: none; margin-right: 10px; }
-  .approve { background: #238636; color: white; }
-  .approve:hover { background: #2ea043; }
-  .decline { background: #da3633; color: white; }
-  .decline:hover { background: #f85149; }
-  .hidden { display: none; }
+  :root{--bg:#0d1117;--panel:#161b22;--muted:#a8b9c0;--accent:#58a6ff;--danger:#d9534f}
+  body{background:var(--bg);color:#e6edf3;font-family:Inter,Arial,Helvetica,sans-serif;margin:0}
+  nav{background:var(--panel);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #30363d}
+  nav a{color:#e6edf3;margin-left:14px;text-decoration:none}
+  .wrap{max-width:1100px;margin:22px auto;padding:18px}
+  h1{margin:6px 0}
+  .note{color:var(--muted);margin-bottom:12px}
+  .list{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+  .card{background:var(--panel);padding:12px;border-radius:10px;border:1px solid #2b3137}
+  .meta{font-size:13px;color:var(--muted);margin-bottom:8px}
+  img.thumb{max-width:100%;border-radius:6px;margin-top:8px}
+  .btn{padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+  .btn-approve{background:#238636;color:#fff}
+  .btn-decline{background:var(--danger);color:#fff}
+  .small{font-size:13px;color:var(--muted)}
+  .empty{color:var(--muted);padding:18px;background:#0f1416;border-radius:8px}
+  footer{max-width:1100px;margin:20px auto;color:#777;text-align:center}
 </style>
 </head>
 <body>
-
 <nav>
-  <div class="logo">Admin Panel</div>
+  <div class="logo">User Outlooks — Pending</div>
   <div>
     <a href="index.html">Submit</a>
-    <a href="archive.html">Outlook Archive</a>
-    <a href="pending.html">Pending</a>
+    <a href="archive.html">Archive</a>
+    <a href="about.html">About</a>
   </div>
 </nav>
 
-<div class="container">
-  <h1>Pending Outlook Submissions</h1>
-  <p>Only visible to the repository owner (<b>euwpc</b>).</p>
-  <div id="pendingList">Loading...</div>
+<div class="wrap">
+  <h1>Pending submissions</h1>
+  <p class="note">Only approved items are shown in Archive. Approve or decline here. (Admin password required.)</p>
+
+  <div id="pendingList" class="list"></div>
+
+  <div id="emptyMsg" class="empty" style="display:none">No pending submissions.</div>
+  <div style="margin-top:14px" class="small">Admin password is stored in this file. Change it in the script's <code>ADMIN_PASSWORD</code> variable before public use.</div>
 </div>
 
+<footer>&copy; 2025 European Windstorm Prediction Center</footer>
+
 <script>
-const repoOwner = "euwpc";
-const repoName = "ewpc.github.io-user-outlooks";
+/* ADMIN_PASSWORD: change this to something only you know.
+   Note: client-side protection only (local). For real security use a server. */
+const ADMIN_PASSWORD = 'S6!ÖhqR.T';
 
-let loggedInUser = null;
+function loadKey(k){ try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]} }
+function saveKey(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
 
-fetch("https://api.github.com/user", { credentials: "include" })
-  .then(res => res.json())
-  .then(data => {
-    loggedInUser = data.login || null;
-  })
-  .catch(() => {});
+const pendingListEl = document.getElementById('pendingList');
+const emptyEl = document.getElementById('emptyMsg');
 
-fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open`)
-  .then(res => res.json())
-  .then(issues => {
-    const list = document.getElementById("pendingList");
-    list.innerHTML = "";
-
-    issues.forEach(issue => {
-      if (!issue.labels.some(label => label.name === "approved")) {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <h3>${issue.title}</h3>
-          <p>${issue.body.replace(/###/g, "").slice(0, 200)}...</p>
-          <a href="${issue.html_url}" target="_blank">Open in GitHub</a><br><br>
-
-          <button class="approve hidden" onclick="approve(${issue.number})">Approve</button>
-          <button class="decline hidden" onclick="decline(${issue.number})">Decline</button>
-        `;
-        list.appendChild(card);
-
-        // Buttons only show if logged in user is YOU
-        const checkButtons = setInterval(() => {
-          if (loggedInUser === repoOwner) {
-            card.querySelectorAll("button").forEach(b => b.classList.remove("hidden"));
-          }
-        }, 500);
-      }
-    });
+function render(){
+  const pending = loadKey('userOutlooks_pending');
+  pendingListEl.innerHTML = '';
+  if(!pending.length){ emptyEl.style.display='block'; return } else emptyEl.style.display='none';
+  pending.forEach(item=>{
+    const el = document.createElement('div'); el.className='card';
+    const meta = document.createElement('div'); meta.className='meta';
+    meta.textContent = `${new Date(item.createdAt).toLocaleString()} • ${item.region} • by ${item.username}`;
+    const title = document.createElement('h3'); title.textContent = item.title;
+    const disc = document.createElement('p'); disc.textContent = item.discussion.length > 240 ? item.discussion.slice(0,240)+'…' : item.discussion;
+    el.appendChild(meta); el.appendChild(title); el.appendChild(disc);
+    if(item.imageData){
+      const img = document.createElement('img'); img.className='thumb';
+      img.src = item.imageData; img.alt='attachment'; el.appendChild(img);
+    }
+    const actions = document.createElement('div'); actions.style.marginTop='8px';
+    const aBtn = document.createElement('button'); aBtn.className='btn btn-approve'; aBtn.textContent='Approve';
+    aBtn.onclick = ()=> promptApprove(item.id);
+    const dBtn = document.createElement('button'); dBtn.className='btn btn-decline'; dBtn.textContent='Decline';
+    dBtn.style.marginLeft = '8px'; dBtn.onclick = ()=> promptDecline(item.id);
+    actions.appendChild(aBtn); actions.appendChild(dBtn);
+    el.appendChild(actions);
+    pendingListEl.appendChild(el);
   });
-
-function approve(issue) {
-  window.open(`https://github.com/${repoOwner}/${repoName}/issues/${issue}?labels=approved`, "_blank");
 }
 
-function decline(issue) {
-  window.open(`https://github.com/${repoOwner}/${repoName}/issues/${issue}`, "_blank");
+function promptApprove(id){
+  const pass = prompt('Enter admin password to approve:');
+  if(pass !== ADMIN_PASSWORD){ alert('Wrong password'); return; }
+  const pending = loadKey('userOutlooks_pending');
+  const idx = pending.findIndex(x=>x.id===id);
+  if(idx===-1){ alert('Submission not found'); render(); return; }
+  const item = pending.splice(idx,1)[0];
+  // put into approved
+  const approved = loadKey('userOutlooks_approved');
+  approved.unshift(item);
+  saveKey('userOutlooks_approved', approved);
+  saveKey('userOutlooks_pending', pending);
+  alert('Approved — added to Archive.');
+  render();
 }
+
+function promptDecline(id){
+  const pass = prompt('Enter admin password to decline:');
+  if(pass !== ADMIN_PASSWORD){ alert('Wrong password'); return; }
+  let pending = loadKey('userOutlooks_pending');
+  pending = pending.filter(x=>x.id!==id);
+  saveKey('userOutlooks_pending', pending);
+  alert('Submission declined and removed.');
+  render();
+}
+
+render();
 </script>
-
 </body>
 </html>
