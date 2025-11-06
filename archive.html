@@ -1,115 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Community Outlooks</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Approved Outlooks — User Outlooks</title>
 <style>
-  body {
-    background: #0d1117;
-    color: #e6edf3;
-    font-family: Arial, sans-serif;
-    margin: 0;
+  :root{
+    --bg:#0d1117; --card:#161b22; --muted:#9aa3ad; --accent:#58a6ff; --accent-2:#00ff66; --text:#e6edf3;
   }
-
-  nav {
-    background: #161b22;
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #30363d;
-  }
-
-  nav a {
-    color: #e6edf3;
-    margin-left: 20px;
-    text-decoration: none;
-  }
-
-  nav a:hover {
-    color: #58a6ff;
-  }
-
-  .container {
-    max-width: 1000px;
-    margin: auto;
-    padding: 30px;
-  }
-
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  input, select {
-    background: #161b22;
-    border: 1px solid #30363d;
-    color: #e6edf3;
-    padding: 8px;
-    border-radius: 6px;
-  }
-
-  .outlook-card {
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 10px;
-    margin-top: 20px;
-    padding: 15px;
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 15px;
-  }
-
-  .outlook-card img {
-    width: 180px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  .outlook-content {
-    flex: 1;
-  }
-
-  .outlook-content h3 {
-    margin: 0 0 5px;
-    color: #58a6ff;
-  }
-
-  .meta {
-    font-size: 13px;
-    color: #8b949e;
-    margin-bottom: 8px;
-  }
-
-  .view-btn {
-    background: #238636;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .view-btn:hover {
-    background: #2ea043;
-  }
-
-  .note {
-    font-size: 13px;
-    opacity: 0.7;
-    margin-top: 25px;
-  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.4}
+  nav{background:var(--card);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #30363d}
+  nav .logo{font-weight:700}
+  nav a{color:var(--text);text-decoration:none;margin-left:14px}
+  nav a:hover{color:var(--accent)}
+  .wrap{max-width:1100px;margin:26px auto;padding:0 16px}
+  .top-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .search, .select {background:#0b0f13;border:1px solid #2b3036;color:var(--text);padding:8px 10px;border-radius:6px;outline:none}
+  .select {min-width:160px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:12px}
+  .tile{background:var(--card);border:1px solid #24282c;border-radius:8px;overflow:hidden;position:relative;cursor:pointer;display:flex;flex-direction:column}
+  .thumb{width:100%;height:140px;object-fit:cover;display:block}
+  .tile-meta{padding:10px}
+  .meta-title{font-weight:700;margin:0 0 6px;font-size:0.95rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta-sub{font-size:0.86rem;color:var(--muted);margin:0}
+  .small{font-size:0.82rem;color:var(--muted)}
+  .no-results{padding:24px;text-align:center;color:var(--muted)}
+  /* modal */
+  .modal-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:999}
+  .modal{background:#0b0f13;color:var(--text);max-width:980px;width:96%;border-radius:10px;padding:18px;display:grid;grid-template-columns:1fr 360px;gap:16px}
+  .modal img{width:100%;height:auto;border-radius:6px;border:1px solid #222;display:block}
+  .modal .right{background:transparent}
+  .modal h2{margin:0 0 8px}
+  .meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .tag{background:#0b2a36;color:var(--accent-2);padding:6px 8px;border-radius:6px;font-size:0.85rem}
+  .disclaimer{margin-top:12px;color:#ffb3b3;font-weight:600}
+  .close-btn{background:#222;border:none;color:var(--text);padding:8px 10px;border-radius:6px;cursor:pointer}
+  .view-discussion{background:var(--accent);color:#012;display:inline-block;padding:8px 10px;border-radius:6px;text-decoration:none;font-weight:700}
+  /* responsive */
+  @media (max-width:980px){.modal{grid-template-columns:1fr 1fr}}
+  @media (max-width:720px){.modal{grid-template-columns:1fr};.modal img{max-height:360px;object-fit:contain}}
 </style>
 </head>
 <body>
-
 <nav>
   <div class="logo">User Outlooks</div>
   <div>
@@ -120,116 +53,210 @@
   </div>
 </nav>
 
-<div class="container">
-  <h1>Community Outlooks</h1>
-  <p>Explore recent approved outlooks. These are community-submitted forecasts and not official analyses.</p>
+<div class="wrap">
+  <h1>Approved Outlooks</h1>
+  <p style="color:var(--muted);margin-top:6px">Community-submitted outlooks (not official forecasts). Use the search and filters below.</p>
 
-  <div class="filters">
-    <input type="text" id="searchInput" placeholder="Search by title or user">
-    <select id="regionFilter">
-      <option value="">All Regions</option>
-      <option>Baltic Region</option><option>Northern Europe</option>
-      <option>Central Europe</option><option>Western Europe</option>
-      <option>Southern Europe</option><option>Eastern Europe</option>
-      <option>Scandinavia</option><option>British Isles</option>
-    </select>
-
-    <select id="monthFilter">
-      <option value="">All Months</option>
-      <option>01</option><option>02</option><option>03</option><option>04</option>
-      <option>05</option><option>06</option><option>07</option><option>08</option>
-      <option>09</option><option>10</option><option>11</option><option>12</option>
-    </select>
-
-    <select id="yearFilter">
-      <option value="">All Years</option>
-      <option>2025</option><option>2024</option><option>2023</option>
-    </select>
+  <div class="top-controls">
+    <input id="searchInput" class="search" type="search" placeholder="Search by title or username" />
+    <select id="regionFilter" class="select"><option value="">All regions</option></select>
+    <select id="yearFilter" class="select"><option value="">All years</option></select>
+    <select id="monthFilter" class="select"><option value="">All months</option></select>
+    <button id="clearBtn" class="close-btn">Clear filters</button>
   </div>
 
-  <div id="outlookList"></div>
+  <div id="grid" class="grid" aria-live="polite"></div>
+  <div id="noResults" class="no-results" style="display:none">No outlooks found.</div>
+</div>
 
-  <p class="note">All outlooks are user-contributed and do not represent official forecasts.</p>
+<!-- Modal -->
+<div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
+  <div class="modal" role="document">
+    <div class="left">
+      <img id="modalImage" src="" alt="Outlook image">
+    </div>
+    <div class="right">
+      <h2 id="modalTitle">Title</h2>
+      <div class="meta-row">
+        <div class="tag" id="modalRegion">Region</div>
+        <div style="color:var(--muted)" id="modalUser">by username</div>
+        <div style="color:var(--muted)" id="modalDate">date</div>
+      </div>
+      <div id="modalDiscussion" style="white-space:pre-wrap;color:var(--text);background:#071018;padding:10px;border-radius:6px;border:1px solid #122028;max-height:360px;overflow:auto"></div>
+      <div class="disclaimer">⚠️ These outlooks are not official.</div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="close-btn" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-// Simulated data — later this will pull from GitHub issues (approved)
-const outlooks = [
-  {
-    title: "Baltic Low Pressure Outlook",
-    user: "StormWatcherEE",
-    region: "Baltic Region",
-    date: "04/11/2025",
-    image: "https://i.imgur.com/yourimage.jpg",
-    discussion: "A strong low expected to develop over the eastern Baltic Sea.",
-  },
-  {
-    title: "Scandinavia Winter Chill",
-    user: "FrostFan",
-    region: "Scandinavia",
-    date: "30/10/2025",
-    image: "https://i.imgur.com/example2.jpg",
-    discussion: "High pressure over northern Scandinavia will bring freezing temps.",
-  }
-];
+/*
+  archive.html
+  - reads data/outlooks.json (array of outlook objects)
+  - displays small square thumbnails in a responsive grid
+  - supports search by title/username and filters: region, year, month
+  - clicking a tile opens a modal with full image + discussion
+*/
 
-// Render function
-function displayOutlooks(list) {
-  const container = document.getElementById('outlookList');
-  container.innerHTML = '';
-
-  list.forEach(o => {
-    const card = document.createElement('div');
-    card.className = 'outlook-card';
-    card.innerHTML = `
-      <img src="${o.image}" alt="Outlook Image" onclick="openImage('${o.image}')">
-      <div class="outlook-content">
-        <h3>${o.title}</h3>
-        <div class="meta">${o.region} • ${o.date} • by ${o.user}</div>
-        <button class="view-btn" onclick="viewOutlook('${encodeURIComponent(JSON.stringify(o))}')">View Full Outlook</button>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-
-  if (list.length === 0) {
-    container.innerHTML = "<p>No outlooks found matching your filters.</p>";
+/* helper to fetch JSON */
+async function loadOutlooks() {
+  try {
+    const res = await fetch('data/outlooks.json', {cache: "no-cache"});
+    if (!res.ok) throw new Error('Could not load outlooks');
+    const data = await res.json();
+    return data.outlooks || [];
+  } catch (e) {
+    console.error(e);
+    return [];
   }
 }
 
-// Filter logic
-function applyFilters() {
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  const region = document.getElementById('regionFilter').value;
-  const month = document.getElementById('monthFilter').value;
-  const year = document.getElementById('yearFilter').value;
+/* DOM refs */
+const grid = document.getElementById('grid');
+const searchInput = document.getElementById('searchInput');
+const regionFilter = document.getElementById('regionFilter');
+const yearFilter = document.getElementById('yearFilter');
+const monthFilter = document.getElementById('monthFilter');
+const clearBtn = document.getElementById('clearBtn');
+const noResults = document.getElementById('noResults');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modalImage = document.getElementById('modalImage');
+const modalTitle = document.getElementById('modalTitle');
+const modalRegion = document.getElementById('modalRegion');
+const modalUser = document.getElementById('modalUser');
+const modalDate = document.getElementById('modalDate');
+const modalDiscussion = document.getElementById('modalDiscussion');
 
-  const filtered = outlooks.filter(o => {
-    const matchesSearch = o.title.toLowerCase().includes(search) || o.user.toLowerCase().includes(search);
-    const matchesRegion = !region || o.region === region;
-    const [day, mon, yr] = o.date.split('/');
-    const matchesMonth = !month || mon === month;
-    const matchesYear = !year || yr === year;
-    return matchesSearch && matchesRegion && matchesMonth && matchesYear;
+let allOutlooks = [];
+
+function formatMonth(n){
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return months[n-1] || "";
+}
+
+function buildFilters(items){
+  const regions = new Set();
+  const years = new Set();
+  const months = new Set();
+  items.forEach(o=>{
+    if (o.region) regions.add(o.region);
+    if (o.date) {
+      const d = new Date(o.date);
+      if (!isNaN(d)) {
+        years.add(d.getUTCFullYear());
+        months.add(d.getUTCMonth()+1);
+      }
+    }
   });
-
-  displayOutlooks(filtered);
+  // populate selects
+  regionFilter.innerHTML = '<option value="">All regions</option>'+[...regions].sort().map(r=>`<option value="${r}">${r}</option>`).join('');
+  yearFilter.innerHTML = '<option value="">All years</option>'+[...years].sort((a,b)=>b-a).map(y=>`<option value="${y}">${y}</option>`).join('');
+  monthFilter.innerHTML = '<option value="">All months</option>'+[...months].sort((a,b)=>a-b).map(m=>`<option value="${m}">${formatMonth(m)}</option>`).join('');
 }
 
-document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', applyFilters));
-
-function openImage(src) {
-  const w = window.open('', '_blank');
-  w.document.write(`<img src="${src}" style="width:100%">`);
+/* render tiles */
+function renderGrid(items){
+  grid.innerHTML = '';
+  if (!items.length) {
+    noResults.style.display = 'block';
+    return;
+  }
+  noResults.style.display = 'none';
+  items.forEach((o, idx) => {
+    const a = document.createElement('div');
+    a.className = 'tile';
+    a.tabIndex = 0;
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.alt = o.title || 'Outlook image';
+    img.src = o.image; // expect path or absolute url
+    // ensure thumbnail not huge: let CSS handle it (object-fit)
+    const meta = document.createElement('div');
+    meta.className = 'tile-meta';
+    meta.innerHTML = `<div class="meta-title">${o.title || '(untitled)'}</div>
+                      <div class="meta-sub small">by ${o.username || 'unknown'} • ${o.region || '—'}</div>`;
+    a.appendChild(img);
+    a.appendChild(meta);
+    a.addEventListener('click', () => openModal(o));
+    a.addEventListener('keypress', (e)=>{ if (e.key==='Enter') openModal(o); });
+    grid.appendChild(a);
+  });
 }
 
-function viewOutlook(data) {
-  localStorage.setItem('selectedOutlook', data);
-  window.location.href = 'view.html';
+/* modal open */
+function openModal(outlook){
+  modalImage.src = outlook.image;
+  modalImage.alt = outlook.title || 'Outlook image';
+  modalTitle.textContent = outlook.title || '(no title)';
+  modalRegion.textContent = outlook.region || '';
+  modalUser.textContent = 'by ' + (outlook.username || 'unknown');
+  const d = new Date(outlook.date || outlook.created_at || '');
+  modalDate.textContent = isNaN(d) ? '' : d.toUTCString();
+  modalDiscussion.textContent = outlook.discussion || '';
+  modalBackdrop.style.display = 'flex';
+  modalBackdrop.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
 }
 
-// Initialize
-displayOutlooks(outlooks);
+/* close modal */
+function closeModal(){
+  modalBackdrop.style.display = 'none';
+  modalBackdrop.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+/* filtering logic */
+function filterOutlooks(){
+  const q = (searchInput.value || '').toLowerCase().trim();
+  const region = regionFilter.value;
+  const year = yearFilter.value;
+  const mon = monthFilter.value;
+  const filtered = allOutlooks.filter(o=>{
+    if (region && o.region !== region) return false;
+    if (year) {
+      const d = new Date(o.date || o.created_at || '');
+      if (isNaN(d) || String(d.getUTCFullYear()) !== String(year)) return false;
+    }
+    if (mon) {
+      const d = new Date(o.date || o.created_at || '');
+      if (isNaN(d) || String(d.getUTCMonth()+1) !== String(mon)) return false;
+    }
+    if (q) {
+      const hay = ((o.title||'') + ' ' + (o.username||'') + ' ' + (o.region||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  renderGrid(filtered);
+}
+
+/* initial load */
+(async function(){
+  allOutlooks = await loadOutlooks();
+  // sort newest first (by date field or created_at fallback)
+  allOutlooks.sort((a,b)=>{
+    const da = new Date(a.date || a.created_at || 0);
+    const db = new Date(b.date || b.created_at || 0);
+    return db - da;
+  });
+  buildFilters(allOutlooks);
+  renderGrid(allOutlooks);
+})();
+
+searchInput.addEventListener('input', filterOutlooks);
+regionFilter.addEventListener('change', filterOutlooks);
+yearFilter.addEventListener('change', filterOutlooks);
+monthFilter.addEventListener('change', filterOutlooks);
+clearBtn.addEventListener('click', ()=>{
+  searchInput.value=''; regionFilter.value=''; yearFilter.value=''; monthFilter.value=''; renderGrid(allOutlooks);
+});
+
+/* close modal on backdrop click */
+modalBackdrop.addEventListener('click', (e)=>{
+  if (e.target === modalBackdrop) closeModal();
+});
 </script>
 </body>
 </html>
