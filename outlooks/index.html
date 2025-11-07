@@ -4,19 +4,19 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Submit Outlook — User Outlooks</title>
+
 <style>
-  body{background:#0d1117;color:#e6edf3;font-family:Arial,Helvetica,sans-serif;margin:0}
-  nav{background:#161b22;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #30363d}
+  body{background:#0d1117;color:#e6edf3;font-family:Arial;margin:0}
+  nav{background:#161b22;padding:12px 18px;display:flex;justify-content:space-between;border-bottom:1px solid #30363d}
   nav a{color:#e6edf3;text-decoration:none;margin-left:12px}
-  .wrap{max-width:900px;margin:24px auto;padding:0 16px}
+  .wrap{max-width:850px;margin:24px auto;padding:0 16px}
   .card{background:#161b22;padding:20px;border-radius:8px;border:1px solid #30363d}
-  label{display:block;margin:10px 0 6px}
-  input[type=text], select, textarea{width:100%;padding:10px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3}
-  input[type=file]{margin-top:8px}
-  button{background:#238636;color:#fff;padding:10px 14px;border-radius:6px;border:none;cursor:pointer;margin-top:12px}
-  .note{color:#9aa3ad;margin-top:8px;font-size:0.95rem}
+  input,select,textarea{width:100%;padding:10px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;margin-top:6px}
+  button{background:#238636;color:#fff;padding:10px 14px;border-radius:6px;border:none;cursor:pointer;margin-top:16px}
+  button:hover{background:#2ea043}
 </style>
 </head>
+
 <body>
 <nav>
   <div class="logo">User Outlooks</div>
@@ -24,19 +24,15 @@
     <a href="index.html">Submit</a>
     <a href="archive.html">Approved Outlooks</a>
     <a href="pending.html">Pending</a>
-    <a href="about.html">About</a>
   </div>
 </nav>
 
 <div class="wrap">
   <h1>Submit Your Outlook</h1>
-  <p style="color:#9aa3ad">These are community forecasts and are not official. All submissions require admin approval.</p>
-
   <div class="card">
-    <h2>Submit Outlook</h2>
     <form id="submitForm">
-      <label>Your username:</label>
-      <input id="username" type="text" required>
+      <label>Username:</label>
+      <input id="username" required>
 
       <label>Region:</label>
       <select id="region" required>
@@ -52,79 +48,58 @@
       </select>
 
       <label>Title:</label>
-      <input id="title" type="text" required>
+      <input id="title" required>
 
       <label>Discussion / Analysis:</label>
       <textarea id="discussion" rows="6" required></textarea>
 
       <label>Upload Outlook Image:</label>
-      <input id="imageFile" type="file" accept="image/*" required>
+      <input type="file" id="imageFile" accept="image/*" required>
 
-      <button type="submit">Submit Outlook</button>
+      <button type="submit">Submit</button>
     </form>
   </div>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+<script>
+const CLOUD_NAME = "dhezavkez";
+const UPLOAD_PRESET = "unsigned";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCA0EqMhYgT0zJMbJemdcvCmZBdEQYmj_s",
-    authDomain: "ewpc-f9bd6.firebaseapp.com",
-    projectId: "ewpc-f9bd6",
-    storageBucket: "ewpc-f9bd6.firebasestorage.app",
-    messagingSenderId: "782175980177",
-    appId: "1:782175980177:web:f7272e9bb393fded11cd30",
-    measurementId: "G-Z6DC5X7ELM"
-  };
+document.getElementById("submitForm").addEventListener("submit", async(e)=>{
+  e.preventDefault();
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  const username = username.value.trim();
+  const region = region.value;
+  const title = title.value.trim();
+  const discussion = discussion.value.trim();
+  const imageFile = imageFile.files[0];
 
-  const CLOUD_NAME = "dhezavkez";
-  const UPLOAD_PRESET = "unsigned";
+  // Upload image → Cloudinary
+  const data = new FormData();
+  data.append("file", imageFile);
+  data.append("upload_preset", UPLOAD_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:"POST", body:data });
+  const cloud = await res.json();
 
-  document.getElementById("submitForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const username = document.getElementById("username").value.trim();
-    const region = document.getElementById("region").value;
-    const title = document.getElementById("title").value.trim();
-    const discussion = document.getElementById("discussion").value.trim();
-    const imageFile = document.getElementById("imageFile").files[0];
-
-    if (!username || !region || !title || !discussion || !imageFile){
-      alert("Please fill all fields.");
-      return;
+  // Send JSON data to GitHub Action trigger
+  await fetch("https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/dispatches", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/vnd.github.everest-preview+json"
+  },
+  body: JSON.stringify({
+    event_type: "add_outlook",
+    client_payload: {
+      data: { username, region, title, discussion, imageUrl: cloud.secure_url }
     }
+  })
+});
 
-    // Upload image → Cloudinary
-    const formData = new FormData();
-    formData.append("file", imageFile);
-    formData.append("upload_preset", UPLOAD_PRESET);
 
-    const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-      method: "POST",
-      body: formData
-    });
-
-    const cloudData = await cloudRes.json();
-    const imageUrl = cloudData.secure_url;
-
-    // Save to Firestore (Pending Queue)
-    await addDoc(collection(db, "pendingOutlooks"), {
-      username,
-      region,
-      title,
-      discussion,
-      imageUrl,
-      timestamp: Date.now()
-    });
-
-    alert("✅ Submitted! Your outlook is now awaiting admin approval.");
-    document.getElementById("submitForm").reset();
-  });
+  alert("✅ Submitted! Your outlook is waiting for admin approval.");
+  submitForm.reset();
+});
 </script>
 
 </body>
