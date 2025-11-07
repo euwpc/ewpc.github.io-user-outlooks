@@ -1,115 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>User Outlooks — Pending</title>
+<meta charset="UTF-8">
+<title>Pending Outlooks — Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-  :root{--bg:#0d1117;--panel:#161b22;--muted:#a8b9c0;--accent:#58a6ff;--danger:#d9534f}
-  body{background:var(--bg);color:#e6edf3;font-family:Inter,Arial,Helvetica,sans-serif;margin:0}
-  nav{background:var(--panel);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #30363d}
-  nav a{color:#e6edf3;margin-left:14px;text-decoration:none}
-  .wrap{max-width:1100px;margin:22px auto;padding:18px}
-  h1{margin:6px 0}
-  .note{color:var(--muted);margin-bottom:12px}
-  .list{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
-  .card{background:var(--panel);padding:12px;border-radius:10px;border:1px solid #2b3137}
-  .meta{font-size:13px;color:var(--muted);margin-bottom:8px}
-  img.thumb{max-width:100%;border-radius:6px;margin-top:8px}
-  .btn{padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
-  .btn-approve{background:#238636;color:#fff}
-  .btn-decline{background:var(--danger);color:#fff}
-  .small{font-size:13px;color:var(--muted)}
-  .empty{color:var(--muted);padding:18px;background:#0f1416;border-radius:8px}
-  footer{max-width:1100px;margin:20px auto;color:#777;text-align:center}
+  body{background:#0d1117;color:#e6edf3;font-family:Arial;margin:0;}
+  nav{background:#161b22;padding:14px;border-bottom:1px solid #30363d;}
+  nav a{color:#e6edf3;margin-right:14px;text-decoration:none;}
+  .container{max-width:1000px;margin:auto;padding:30px;}
+  table{width:100%;border-collapse:collapse;margin-top:20px;}
+  th,td{border-bottom:1px solid #30363d;padding:12px;text-align:left;}
+  img{height:70px;border-radius:6px;}
+  button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
+  .approve{background:#238636;color:white;}
+  .reject{background:#b62324;color:white;margin-left:6px;}
+  #loginBox{max-width:420px;margin:80px auto;background:#161b22;padding:25px;border:1px solid #30363d;border-radius:8px;}
+  input{width:100%;padding:10px;margin-top:12px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;}
 </style>
 </head>
 <body>
+
 <nav>
-  <div class="logo">User Outlooks — Pending</div>
-  <div>
-    <a href="index.html">Submit</a>
-    <a href="archive.html">Archive</a>
-    <a href="about.html">About</a>
-  </div>
+  <a href="index.html">Submit</a>
+  <a href="archive.html">Approved Outlooks</a>
+  <a href="pending.html">Pending (Admin)</a>
 </nav>
 
-<div class="wrap">
-  <h1>Pending submissions</h1>
-  <p class="note">Only approved items are shown in Archive. Approve or decline here. (Admin password required.)</p>
-
-  <div id="pendingList" class="list"></div>
-
-  <div id="emptyMsg" class="empty" style="display:none">No pending submissions.</div>
-  <div style="margin-top:14px" class="small">Admin password is stored in this file. Change it in the script's <code>ADMIN_PASSWORD</code> variable before public use.</div>
+<div id="loginBox">
+  <h2>Admin Login</h2>
+  <input id="adminPass" type="password" placeholder="Enter admin password">
+  <button onclick="login()" style="margin-top:14px;background:#238636;color:white;">Login</button>
 </div>
 
-<footer>&copy; 2025 European Windstorm Prediction Center</footer>
+<div class="container" id="panel" style="display:none;">
+  <h1>Pending Outlooks</h1>
+  <table id="pendingTable">
+    <tr>
+      <th>User</th>
+      <th>Title</th>
+      <th>Region</th>
+      <th>Preview</th>
+      <th>Actions</th>
+    </tr>
+  </table>
+</div>
 
-<script>
-/* ADMIN_PASSWORD: change this to something only you know.
-   Note: client-side protection only (local). For real security use a server. */
-const ADMIN_PASSWORD = 'S6!ÖhqR.T';
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, deleteDoc, addDoc, doc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
-function loadKey(k){ try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]} }
-function saveKey(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
+  const firebaseConfig = {
+    apiKey: "AIzaSyCA0EqMhYgT0zJMbJemdcvCmZBdEQYmj_s",
+    authDomain: "ewpc-f9bd6.firebaseapp.com",
+    projectId: "ewpc-f9bd6",
+    storageBucket: "ewpc-f9bd6.firebasestorage.app",
+    messagingSenderId: "782175980177",
+    appId: "1:782175980177:web:f7272e9bb393fded11cd30",
+    measurementId: "G-Z6DC5X7ELM"
+  };
 
-const pendingListEl = document.getElementById('pendingList');
-const emptyEl = document.getElementById('emptyMsg');
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-function render(){
-  const pending = loadKey('userOutlooks_pending');
-  pendingListEl.innerHTML = '';
-  if(!pending.length){ emptyEl.style.display='block'; return } else emptyEl.style.display='none';
-  pending.forEach(item=>{
-    const el = document.createElement('div'); el.className='card';
-    const meta = document.createElement('div'); meta.className='meta';
-    meta.textContent = `${new Date(item.createdAt).toLocaleString()} • ${item.region} • by ${item.username}`;
-    const title = document.createElement('h3'); title.textContent = item.title;
-    const disc = document.createElement('p'); disc.textContent = item.discussion.length > 240 ? item.discussion.slice(0,240)+'…' : item.discussion;
-    el.appendChild(meta); el.appendChild(title); el.appendChild(disc);
-    if(item.imageData){
-      const img = document.createElement('img'); img.className='thumb';
-      img.src = item.imageData; img.alt='attachment'; el.appendChild(img);
+  const ADMIN_PASSWORD = "S6!ÖhqR.T";
+
+  function login(){
+    const input = document.getElementById("adminPass").value;
+    if(input === ADMIN_PASSWORD){
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("panel").style.display = "block";
+      loadPending();
+    } else{
+      alert("Incorrect password.");
     }
-    const actions = document.createElement('div'); actions.style.marginTop='8px';
-    const aBtn = document.createElement('button'); aBtn.className='btn btn-approve'; aBtn.textContent='Approve';
-    aBtn.onclick = ()=> promptApprove(item.id);
-    const dBtn = document.createElement('button'); dBtn.className='btn btn-decline'; dBtn.textContent='Decline';
-    dBtn.style.marginLeft = '8px'; dBtn.onclick = ()=> promptDecline(item.id);
-    actions.appendChild(aBtn); actions.appendChild(dBtn);
-    el.appendChild(actions);
-    pendingListEl.appendChild(el);
-  });
-}
+  }
 
-function promptApprove(id){
-  const pass = prompt('Enter admin password to approve:');
-  if(pass !== ADMIN_PASSWORD){ alert('Wrong password'); return; }
-  const pending = loadKey('userOutlooks_pending');
-  const idx = pending.findIndex(x=>x.id===id);
-  if(idx===-1){ alert('Submission not found'); render(); return; }
-  const item = pending.splice(idx,1)[0];
-  // put into approved
-  const approved = loadKey('userOutlooks_approved');
-  approved.unshift(item);
-  saveKey('userOutlooks_approved', approved);
-  saveKey('userOutlooks_pending', pending);
-  alert('Approved — added to Archive.');
-  render();
-}
+  async function loadPending(){
+    const table = document.getElementById("pendingTable");
+    const snapshot = await getDocs(collection(db, "pendingOutlooks"));
 
-function promptDecline(id){
-  const pass = prompt('Enter admin password to decline:');
-  if(pass !== ADMIN_PASSWORD){ alert('Wrong password'); return; }
-  let pending = loadKey('userOutlooks_pending');
-  pending = pending.filter(x=>x.id!==id);
-  saveKey('userOutlooks_pending', pending);
-  alert('Submission declined and removed.');
-  render();
-}
+    snapshot.forEach(docItem => {
+      const data = docItem.data();
+      const row = document.createElement("tr");
 
-render();
+      row.innerHTML = `
+        <td>${data.username}</td>
+        <td>${data.title}</td>
+        <td>${data.region}</td>
+        <td><img src="${data.imageUrl}" /></td>
+        <td>
+          <button class="approve" onclick="approve('${docItem.id}', '${data.username}', '${data.region}', '${data.title}', \`${data.discussion}\`, '${data.imageUrl}')">Approve</button>
+          <button class="reject" onclick="rejectOutlook('${docItem.id}')">Reject</button>
+        </td>
+      `;
+
+      table.appendChild(row);
+    });
+  }
+
+  window.approve = async function(id, username, region, title, discussion, imageUrl){
+    await addDoc(collection(db, "approvedOutlooks"), {
+      username, region, title, discussion, imageUrl, timestamp: Date.now()
+    });
+    await deleteDoc(doc(db, "pendingOutlooks", id));
+    alert("Approved!");
+    location.reload();
+  }
+
+  window.rejectOutlook = async function(id){
+    await deleteDoc(doc(db, "pendingOutlooks", id));
+    alert("Rejected.");
+    location.reload();
+  }
 </script>
+
 </body>
 </html>
