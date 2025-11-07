@@ -1,0 +1,32 @@
+name: Add submission to pending.json
+
+on:
+  repository_dispatch:
+    types: [add_outlook]
+
+jobs:
+  add_to_pending:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Extract payload
+      run: |
+        echo '${{ github.event.client_payload.data }}' > submission.json
+
+    - name: Append to pending.json
+      run: |
+        jq ". + [$(cat submission.json)]" outlooks/data/pending.json > pending_new.json
+        mv pending_new.json outlooks/data/pending.json
+
+    - name: Commit changes
+      run: |
+        git config user.name "EWPC Submission Bot"
+        git config user.email "noreply@github.com"
+        git add outlooks/data/pending.json
+        git commit -m "New pending outlook"
+        git push
