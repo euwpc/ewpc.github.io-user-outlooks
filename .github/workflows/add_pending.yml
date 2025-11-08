@@ -1,32 +1,38 @@
-name: Add submission to pending.json
+name: Add Pending Outlook to pending.json
 
 on:
   repository_dispatch:
     types: [add_outlook]
 
 jobs:
-  add_to_pending:
+  add_outlook:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Extract payload
-      run: |
-        echo '${{ github.event.client_payload.data }}' > submission.json
+      - name: Get current date
+        id: date
+        run: echo "date=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
 
-    - name: Append to pending.json
-      run: |
-        jq ". + [$(cat submission.json)]" outlooks/data/pending.json > pending_new.json
-        mv pending_new.json outlooks/data/pending.json
+      - name: Update pending.json
+        run: |
+          mkdir -p data
+          if [ ! -f data/pending.json ]; then echo "[]" > data/pending.json; fi
+          node <<'EOF'
+          const fs = require("fs");
+          const input = ${JSON.stringify('${{ github.event.client_payload.data }}')};
+          const entry = JSON.parse(input);
+          const pending = JSON.parse(fs.readFileSync("data/pending.json", "utf8"));
+          pending.push(entry);
+          fs.writeFileSync("data/pending.json", JSON.stringify(pending, null, 2));
+          EOF
 
-    - name: Commit changes
-      run: |
-        git config user.name "EWPC Submission Bot"
-        git config user.email "noreply@github.com"
-        git add outlooks/data/pending.json
-        git commit -m "New pending outlook"
-        git push
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data/pending.json
+          git commit -m "Add new pending outlook"
+          git push
