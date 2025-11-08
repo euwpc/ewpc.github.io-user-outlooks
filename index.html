@@ -65,7 +65,9 @@
 const CLOUD_NAME = "dhezavkez";
 const UPLOAD_PRESET = "unsigned";
 
-document.getElementById("submitForm").addEventListener("submit", async(e)=>{
+const submitForm = document.getElementById("submitForm"); // ✅ FIX ADDED
+
+submitForm.addEventListener("submit", async(e)=>{
   e.preventDefault();
 
   const username = document.getElementById("username").value.trim();
@@ -81,7 +83,7 @@ document.getElementById("submitForm").addEventListener("submit", async(e)=>{
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:"POST", body:data });
   const cloud = await res.json();
 
-  // Send JSON data to GitHub Action trigger (Cloudflare Worker)
+  // Send JSON data to Worker
   await fetch("https://ewpc.estoniaweather.workers.dev/", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -91,7 +93,7 @@ document.getElementById("submitForm").addEventListener("submit", async(e)=>{
   });
 
   alert("✅ Submitted! Your outlook is waiting for admin approval.");
-  submitForm.reset();
+  submitForm.reset(); // ✅ now this works
 });
 </script>
 
