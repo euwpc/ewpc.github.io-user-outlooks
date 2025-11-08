@@ -68,11 +68,11 @@ const UPLOAD_PRESET = "unsigned";
 document.getElementById("submitForm").addEventListener("submit", async(e)=>{
   e.preventDefault();
 
-  const username = username.value.trim();
-  const region = region.value;
-  const title = title.value.trim();
-  const discussion = discussion.value.trim();
-  const imageFile = imageFile.files[0];
+  const username = document.getElementById("username").value.trim();
+  const region = document.getElementById("region").value;
+  const title = document.getElementById("title").value.trim();
+  const discussion = document.getElementById("discussion").value.trim();
+  const imageFile = document.getElementById("imageFile").files[0];
 
   // Upload image → Cloudinary
   const data = new FormData();
@@ -81,20 +81,20 @@ document.getElementById("submitForm").addEventListener("submit", async(e)=>{
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:"POST", body:data });
   const cloud = await res.json();
 
-  // Send JSON data to GitHub Action trigger
+  // Send JSON data to GitHub Action trigger (Cloudflare Worker)
   await fetch("https://ewpc.estoniaweather.workers.dev/", {
-  method: "POST",
-  headers: {"Content-Type": "application/json"},
-  body: JSON.stringify({
-    username, region, title, discussion, imageUrl: cloud.secure_url
-  })
-});
-
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      username, region, title, discussion, imageUrl: cloud.secure_url
+    })
+  });
 
   alert("✅ Submitted! Your outlook is waiting for admin approval.");
   submitForm.reset();
 });
 </script>
+
 
 </body>
 </html>
