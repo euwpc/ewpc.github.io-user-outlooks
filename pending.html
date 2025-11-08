@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pending Outlooks — Admin</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --muted:#9aa3ad; --accent:#38d47a;
+    --glass: rgba(255,255,255,0.03);
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:#e6edf3;font-family:Inter,system-ui,Arial,sans-serif}
+  header{
+    backdrop-filter: blur(6px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding:14px 18px; display:flex; align-items:center; gap:16px; justify-content:space-between;
+  }
+  .logo{font-weight:700;color:var(--accent);font-size:1.05rem}
+  nav a{color:#e6edf3;text-decoration:none;margin-left:12px;opacity:0.9}
+  nav a:hover{color:#bff0cb}
+  .wrap{max-width:1100px;margin:18px auto;padding:18px}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .search, select, input[type=password]{background:var(--panel);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:inherit}
+  .search{min-width:220px;flex:1}
+  .small{padding:6px 8px;font-size:0.95rem}
+  .admin-box{display:flex;gap:8px;align-items:center}
+  .btn{background:var(--accent);color:#062016;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+  .note{color:var(--muted);font-size:0.95rem;margin-bottom:8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .card{background:var(--glass);border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px;display:flex;flex-direction:column;gap:10px}
+  .thumb{width:100%;height:150px;border-radius:8px;object-fit:cover;cursor:pointer;background:#07100f}
+  .meta{display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .meta .title{font-weight:700;font-size:1rem}
+  .meta .smallmuted{color:var(--muted);font-size:0.85rem}
+  .actions{display:flex;gap:8px;margin-top:auto}
+  .actions button{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+  .approve{background:#00b070;color:#02160b}
+  .reject{background:#ff6b6b;color:#2b0a0a}
+  .disabled{opacity:0.45;pointer-events:none}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9999}
+  .modal{max-width:900px;width:100%;background:linear-gradient(180deg, #0f1716, #0a1110);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 6px 30px rgba(0,0,0,0.6)}
+  .modal .modal-top{display:flex;gap:12px;align-items:center}
+  .modal img{max-width:420px;width:48%;border-radius:8px;object-fit:contain;background:#07100f}
+  .modal .modal-right{width:52%}
+  .modal .modal-right h3{margin:0 0 6px}
+  .modal .discussion{white-space:pre-wrap;color:#dfeee8;margin-top:8px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  .empty{color:var(--muted);padding:30px;text-align:center;border-radius:8px;background:rgba(255,255,255,0.01)}
+  footer{max-width:1100px;margin:18px auto;padding:10px 18px;color:var(--muted);font-size:0.9rem}
+  @media (max-width:760px){
+    .modal{padding:10px}
+    .modal img{width:100%;height:auto}
+    .modal .modal-right{width:100%}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">User Outlooks — Pending</div>
+    <nav>
+      <a href="https://euwpc.github.io/ewpc.github.io-home/">Home</a>
+      <a href="archive.html">Approved</a>
+      <a href="index.html">Submit</a>
+    </nav>
+  </div>
+
+  <div class="admin-box">
+    <input id="adminPass" type="password" placeholder="Admin password" class="small" />
+    <button id="loginBtn" class="btn small">Log in</button>
+    <div id="loginStatus" style="margin-left:12px;color:var(--muted)">Not logged in</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="note">Only the admin can approve/reject submissions. Approve/Reject will open a prefilled GitHub Issue so your repository Action can process the change (no secret token needed in the browser).</div>
+
+  <div class="controls">
+    <input id="searchInput" class="search" placeholder="Search by title, username or text..." />
+    <select id="regionFilter" class="small">
+      <option value="">All regions</option>
+      <option>Baltic Region</option>
+      <option>Northern Europe</option>
+      <option>Central Europe</option>
+      <option>Western Europe</option>
+      <option>Southern Europe</option>
+      <option>Eastern Europe</option>
+      <option>Scandinavia</option>
+      <option>British Isles</option>
+    </select>
+    <select id="yearFilter" class="small">
+      <option value="">Any year</option>
+    </select>
+    <select id="monthFilter" class="small">
+      <option value="">Any month</option>
+      <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option>
+      <option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option>
+      <option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option>
+      <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+    </select>
+
+    <button id="refreshBtn" class="btn ghost small">Refresh</button>
+  </div>
+
+  <div id="listWrap" class="grid" aria-live="polite"></div>
+  <div id="empty" class="empty" style="display:none">No pending outlooks.</div>
+</div>
+
+<!-- Modal -->
+<div id="modal" style="display:none" class="modal-backdrop" role="dialog" aria-modal="true">
+  <div class="modal" role="document">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <strong>Full outlook</strong>
+      <button id="closeModal" class="btn ghost" style="padding:6px 10px">Close</button>
+    </div>
+    <div class="modal-top">
+      <img id="modalImg" src="" alt="outlook image">
+      <div class="modal-right">
+        <h3 id="modalTitle">Title</h3>
+        <div style="color:var(--muted)"><span id="modalUser"></span> • <span id="modalRegion"></span> • <span id="modalTime"></span></div>
+        <div class="discussion" id="modalDiscussion"></div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button id="modalApprove" class="approve">Approve</button>
+          <button id="modalReject" class="reject">Reject</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Approve action opens a prefilled GitHub issue titled <code>APPROVE: [title]</code>. Reject opens <code>REJECT: [title]</code>. Configure a GitHub Action in the repo to process these issues automatically (I can help make that Action).
+</footer>
+
+<script>
+/* ==================== CONFIG ====================
+   update these if your repo is different
+   ================================================= */
+const GITHUB_RAW_PENDING = 'https://raw.githubusercontent.com/euwpc/ewpc.github.io-user-outlooks/main/outlooks/data/pending.json';
+const REPO_ISSUE_URL = 'https://github.com/euwpc/ewpc.github.io-user-outlooks/issues/new';
+const ADMIN_PASSWORD = 'S6!ÖhqR.T'; // your admin password (you provided it)
+const GITHUB_ACTION_INSTRUCTION = `
+When approving: copy the JSON below into the approved.json and add image file to images/ per repo rules.
+`;
+
+/* ==================== App state ==================== */
+let pendingList = []; // loaded from pending.json
+let loggedIn = false;
+let selectedItem = null;
+
+/* UI refs */
+const listWrap = document.getElementById('listWrap');
+const emptyBox = document.getElementById('empty');
+const loginBtn = document.getElementById('loginBtn');
+const adminPass = document.getElementById('adminPass');
+const loginStatus = document.getElementById('loginStatus');
+const searchInput = document.getElementById('searchInput');
+const regionFilter = document.getElementById('regionFilter');
+const yearFilter = document.getElementById('yearFilter');
+const monthFilter = document.getElementById('monthFilter');
+const refreshBtn = document.getElementById('refreshBtn');
+
+const modal = document.getElementById('modal');
+const modalImg = document.getElementById('modalImg');
+const modalTitle = document.getElementById('modalTitle');
+const modalUser = document.getElementById('modalUser');
+const modalRegion = document.getElementById('modalRegion');
+const modalDiscussion = document.getElementById('modalDiscussion');
+const modalTime = document.getElementById('modalTime');
+const modalApprove = document.getElementById('modalApprove');
+const modalReject = document.getElementById('modalReject');
+const closeModal = document.getElementById('closeModal');
+
+/* ------------------ helpers ------------------ */
+function formatTimestamp(ts){
+  try {
+    const d = new Date(Number(ts));
+    return d.toLocaleString();
+  } catch(e){ return ts || '—'; }
+}
+function safeText(s){ return (s||'').toString(); }
+function buildApproveIssueBody(item){
+  // Include the item JSON so a GitHub Action can parse it
+  const json = JSON.stringify(item, null, 2);
+  return `APPROVE OUTLOOK\n\n${GITHUB_ACTION_INSTRUCTION}\n\n---\n\n# outlook-json\n\`\`\`json\n${json}\n\`\`\`\n\n*Image:* ${item.imageUrl || '(image in repo/images/)'}\n\n_Admin: process and move to approved.json_`;
+}
+function buildRejectIssueBody(item){
+  const json = JSON.stringify(item, null, 2);
+  return `REJECT OUTLOOK\n\nReason (optional):\n\n---\n\n# outlook-json\n\`\`\`json\n${json}\n\`\`\`\n\n_Admin: remove from pending.json only._`;
+}
+
+/* ------------------ fetch pending ------------------ */
+async function loadPending(){
+  listWrap.innerHTML = '<div style="grid-column:1/-1;padding:18px;color:var(--muted)">Loading…</div>';
+  try {
+    const res = await fetch(GITHUB_RAW_PENDING, {cache: "no-store"});
+    if (!res.ok) throw new Error('Failed to fetch pending.json: ' + res.status);
+    pendingList = await res.json();
+    if (!Array.isArray(pendingList)) pendingList = [];
+  } catch(err){
+    console.error(err);
+    pendingList = [];
+  }
+  renderList();
+  populateYearFilter();
+}
+
+/* ------------------ render ------------------ */
+function renderList(){
+  listWrap.innerHTML = '';
+  const q = (searchInput.value || '').toLowerCase().trim();
+  const region = regionFilter.value;
+  const y = yearFilter.value;
+  const m = monthFilter.value;
+
+  const filtered = pendingList.filter(item => {
+    if (!item) return false;
+    if (region && item.region !== region) return false;
+    if (y || m){
+      const ts = item.timestamp ? String(item.timestamp) : '';
+      if (!ts) return false;
+      const d = new Date(Number(item.timestamp));
+      if (y && d.getFullYear() !== Number(y)) return false;
+      if (m && String(d.getMonth()+1).padStart(2,'0') !== m) return false;
+    }
+    if (q){
+      const hay = (item.title + ' ' + item.username + ' ' + item.discussion + ' ' + item.region).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0){
+    emptyBox.style.display = 'block';
+  } else {
+    emptyBox.style.display = 'none';
+  }
+
+  filtered.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.loading = 'lazy';
+    img.alt = item.title || 'outlook';
+    // show imageUrl if present; otherwise show placeholder
+    img.src = item.imageUrl || '';
+    img.onerror = () => { img.style.filter = 'grayscale(1)'; img.src = ''; };
+
+    img.addEventListener('click', () => openModal(item));
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const t = document.createElement('div'); t.className = 'title'; t.textContent = item.title || 'Untitled';
+    const s = document.createElement('div'); s.className = 'smallmuted'; s.textContent = item.username || 'anonymous';
+    meta.appendChild(t); meta.appendChild(s);
+
+    const sub = document.createElement('div');
+    sub.style.color = 'var(--muted)';
+    sub.style.fontSize = '0.9rem';
+    sub.textContent = `${item.region || '—'} • ${formatTimestamp(item.timestamp)}`;
+
+    const excerpt = document.createElement('div');
+    excerpt.style.color = 'var(--muted)';
+    excerpt.style.fontSize = '0.9rem';
+    excerpt.style.whiteSpace = 'nowrap';
+    excerpt.style.overflow = 'hidden';
+    excerpt.style.textOverflow = 'ellipsis';
+    excerpt.title = item.discussion || '';
+    excerpt.textContent = (item.discussion || '').slice(0,180);
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+
+    const approveBtn = document.createElement('button');
+    approveBtn.className = 'approve';
+    approveBtn.textContent = 'Approve';
+    if (!loggedIn) approveBtn.classList.add('disabled');
+    approveBtn.onclick = () => { openApproveIssue(item); };
+
+    const rejectBtn = document.createElement('button');
+    rejectBtn.className = 'reject';
+    rejectBtn.textContent = 'Reject';
+    if (!loggedIn) rejectBtn.classList.add('disabled');
+    rejectBtn.onclick = () => { openRejectIssue(item); };
+
+    actions.appendChild(approveBtn);
+    actions.appendChild(rejectBtn);
+
+    card.appendChild(img);
+    card.appendChild(meta);
+    card.appendChild(sub);
+    card.appendChild(excerpt);
+    card.appendChild(actions);
+
+    listWrap.appendChild(card);
+  });
+}
+
+/* ------------------ modal ------------------ */
+function openModal(item){
+  selectedItem = item;
+  modalImg.src = item.imageUrl || '';
+  modalTitle.textContent = item.title || 'Untitled';
+  modalUser.textContent = item.username || 'anonymous';
+  modalRegion.textContent = item.region || '—';
+  modalDiscussion.textContent = item.discussion || '';
+  modalTime.textContent = formatTimestamp(item.timestamp);
+  modal.style.display = 'flex';
+  // enable/disable buttons depending on loggedIn
+  modalApprove.disabled = !loggedIn;
+  modalReject.disabled = !loggedIn;
+  modalApprove.classList.toggle('disabled', !loggedIn);
+  modalReject.classList.toggle('disabled', !loggedIn);
+}
+closeModal.addEventListener('click', ()=> { modal.style.display = 'none'; selectedItem=null; });
+
+/* ------------------ approve/reject → open issue (no token) ------------------ */
+function openApproveIssue(item){
+  if (!confirm('Open approval issue in GitHub for "' + (item.title||'') + '"?')) return;
+  const title = 'APPROVE: ' + (item.title||'Untitled');
+  const body = buildApproveIssueBody(item);
+  const url = `${REPO_ISSUE_URL}?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  window.open(url, '_blank');
+}
+function openRejectIssue(item){
+  if (!confirm('Open rejection issue in GitHub for "' + (item.title||'') + '"?')) return;
+  const title = 'REJECT: ' + (item.title||'Untitled');
+  const body = buildRejectIssueBody(item);
+  const url = `${REPO_ISSUE_URL}?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  window.open(url, '_blank');
+}
+
+/* ------------------ login ------------------ */
+loginBtn.addEventListener('click', () => {
+  const val = adminPass.value || '';
+  if (val === ADMIN_PASSWORD){
+    loggedIn = true;
+    loginStatus.textContent = 'Logged in as admin';
+    loginStatus.style.color = 'var(--accent)';
+    adminPass.value = '';
+    toggleButtons(true);
+    renderList();
+  } else {
+    alert('Incorrect password');
+    loggedIn = false;
+    loginStatus.textContent = 'Not logged in';
+    loginStatus.style.color = 'var(--muted)';
+  }
+});
+
+/* enable/disable approve/reject buttons across the UI */
+function toggleButtons(enable){
+  document.querySelectorAll('.approve, .reject').forEach(b => {
+    b.classList.toggle('disabled', !enable);
+    b.disabled = !enable;
+  });
+}
+
+/* ------------------ search & filters ------------------ */
+searchInput.addEventListener('input', renderList);
+regionFilter.addEventListener('change', renderList);
+monthFilter.addEventListener('change', renderList);
+yearFilter.addEventListener('change', renderList);
+refreshBtn.addEventListener('click', loadPending);
+
+/* populate year filter from data */
+function populateYearFilter(){
+  const years = new Set();
+  pendingList.forEach(it => {
+    if (it && it.timestamp){
+      const d = new Date(Number(it.timestamp));
+      if (!isNaN(d.getFullYear())) years.add(d.getFullYear());
+    }
+  });
+  const arr = Array.from(years).sort((a,b)=>b-a);
+  yearFilter.innerHTML = '<option value="">Any year</option>';
+  arr.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = String(y);
+    opt.textContent = String(y);
+    yearFilter.appendChild(opt);
+  });
+}
+
+/* ------------------ init ------------------ */
+(async function init(){
+  await loadPending();
+  // Set initial login state
+  toggleButtons(false);
+})();
+</script>
+</body>
+</html>
