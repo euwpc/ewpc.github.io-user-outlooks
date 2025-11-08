@@ -1,38 +1,35 @@
-name: Add Pending Outlook to pending.json
+name: Add Pending Outlook
 
 on:
   repository_dispatch:
     types: [add_outlook]
 
 jobs:
-  add_outlook:
+  add_pending:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Get current date
-        id: date
-        run: echo "date=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
-
-      - name: Update pending.json
+      - name: Read Inputs
         run: |
-          mkdir -p data
-          if [ ! -f data/pending.json ]; then echo "[]" > data/pending.json; fi
-          node <<'EOF'
-          const fs = require("fs");
-          const input = ${JSON.stringify('${{ github.event.client_payload.data }}')};
-          const entry = JSON.parse(input);
-          const pending = JSON.parse(fs.readFileSync("data/pending.json", "utf8"));
-          pending.push(entry);
-          fs.writeFileSync("data/pending.json", JSON.stringify(pending, null, 2));
-          EOF
+          echo "USERNAME=${{ github.event.client_payload.username }}" >> $GITHUB_ENV
+          echo "REGION=${{ github.event.client_payload.region }}" >> $GITHUB_ENV
+          echo "TITLE=${{ github.event.client_payload.title }}" >> $GITHUB_ENV
+          echo "DISCUSSION=${{ github.event.client_payload.discussion }}" >> $GITHUB_ENV
+          echo "IMAGE=${{ github.event.client_payload.imageUrl }}" >> $GITHUB_ENV
 
-      - name: Commit changes
+      - name: Add to pending.json
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add data/pending.json
+          jq --arg user "$USERNAME" --arg reg "$REGION" --arg title "$TITLE" --arg disc "$DISCUSSION" --arg img "$IMAGE" \
+          '. + [{"username":$user,"region":$reg,"title":$title,"discussion":$disc,"image":$img}]' \
+          outlooks/data/pending.json > pending_tmp.json
+          mv pending_tmp.json outlooks/data/pending.json
+
+      - name: Commit & Push
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add outlooks/data/pending.json
           git commit -m "Add new pending outlook"
           git push
