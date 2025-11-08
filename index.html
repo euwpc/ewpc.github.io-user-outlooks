@@ -82,17 +82,11 @@ document.getElementById("submitForm").addEventListener("submit", async(e)=>{
   const cloud = await res.json();
 
   // Send JSON data to GitHub Action trigger
-  await fetch("https://api.github.com/repos/euwpc/ewpc.github.io-user-outlooks/dispatches", {
+  await fetch("https://ewpc.estoniaweather.workers.dev/", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Accept": "application/vnd.github.everest-preview+json"
-  },
+  headers: {"Content-Type": "application/json"},
   body: JSON.stringify({
-    event_type: "add_outlook",
-    client_payload: {
-      data: { username, region, title, discussion, imageUrl: cloud.secure_url }
-    }
+    username, region, title, discussion, imageUrl: cloud.secure_url
   })
 });
 
