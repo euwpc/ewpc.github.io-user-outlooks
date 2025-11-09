@@ -85,12 +85,17 @@ submitForm.addEventListener("submit", async(e)=>{
 
   // Send JSON data to Worker
   await fetch("https://ewpc.estoniaweather.workers.dev/", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      username, region, title, discussion, imageUrl: cloud.secure_url
-    })
-  });
+  method: "POST",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify({
+    username,
+    region,
+    title,
+    discussion,
+    imageUrl: cloud.secure_url
+  })
+});
+
 
   alert("✅ Submitted! Your outlook is waiting for admin approval.");
   submitForm.reset(); // ✅ now this works
