@@ -84,7 +84,7 @@ submitForm.addEventListener("submit", async(e)=>{
   const cloud = await res.json();
 
   // Send JSON data to Worker
-  await fetch("https://ewpc.estoniaweather.workers.dev/", {
+  await fetch("https://euwpc.estoniaweather.workers.dev/", {
   method: "POST",
   headers: {"Content-Type": "application/json"},
   body: JSON.stringify({
